@@ -108,6 +108,10 @@ export class Game {
       for (const guard of this._guards) {
         const guardGrid = guard.getGridPosition();
         if (guardGrid.x === pos.x && guardGrid.y === pos.y) {
+          // Drop gold at death position
+          if (guard.carryingGold) {
+            this._level.addGold(guardGrid.x, guardGrid.y);
+          }
           guard.die();
         }
       }
@@ -140,7 +144,19 @@ export class Game {
     // Update guards
     const holePositions = this._holeManager.getHolePositions();
     for (const guard of this._guards) {
+      const wasTrapped = guard.isTrapped();
+      const prevPos = guard.getGridPosition();
+      
       guard.update(this._player.position, this._level, holePositions, dt);
+
+      // Check if guard just escaped hole and dropped gold
+      if (wasTrapped && !guard.isTrapped()) {
+        // Guard escaped - check if gold was dropped
+        if (!guard.carryingGold) {
+          // Gold was dropped at the hole position
+          this._level.addGold(prevPos.x, prevPos.y);
+        }
+      }
 
       // Check guard-player collision (only if guard not trapped/dead)
       if (!guard.isTrapped() && !guard.isDead()) {
@@ -148,6 +164,33 @@ export class Game {
         if (guardGrid.x === playerGrid.x && guardGrid.y === playerGrid.y) {
           this.onPlayerDied();
           return;
+        }
+      }
+    }
+
+    // Check guard-guard collision in holes (guard falls on trapped guard)
+    for (let i = 0; i < this._guards.length; i++) {
+      const guard1 = this._guards[i];
+      if (!guard1.isTrapped()) continue;
+      
+      const pos1 = guard1.getGridPosition();
+      for (let j = 0; j < this._guards.length; j++) {
+        if (i === j) continue;
+        const guard2 = this._guards[j];
+        if (guard2.isDead()) continue;
+        
+        const pos2 = guard2.getGridPosition();
+        // If another guard is at the same position as trapped guard, both die
+        if (pos1.x === pos2.x && pos1.y === pos2.y) {
+          // Drop gold from both if carrying
+          if (guard1.carryingGold) {
+            this._level.addGold(pos1.x, pos1.y);
+          }
+          if (guard2.carryingGold) {
+            this._level.addGold(pos2.x, pos2.y);
+          }
+          guard1.die();
+          guard2.die();
         }
       }
     }

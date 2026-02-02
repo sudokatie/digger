@@ -143,6 +143,17 @@ export class Level {
     return false;
   }
 
+  addGold(x: number, y: number): void {
+    const key = this.posKey({ x, y });
+    if (!this.goldPositions.has(key)) {
+      this.goldPositions.add(key);
+      // If exit was revealed but now there's gold again, hide it
+      if (this.exitRevealed && this.goldPositions.size > 0) {
+        this.exitRevealed = false;
+      }
+    }
+  }
+
   revealExit(): void {
     this.exitRevealed = true;
   }

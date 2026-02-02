@@ -2,6 +2,13 @@
 
 All notable changes to Digger will be documented in this file.
 
+## [0.1.2] - 2026-02-01
+
+### Fixed
+- Guards now drop gold on map when escaping holes or dying
+- Guards falling on trapped guards now kills both (spec compliance)
+- Level select now shows stars based on par time (3 stars = under par, 2 = under 1.5x par, 1 = completed)
+
 ## [0.1.1] - 2026-02-01
 
 ### Fixed

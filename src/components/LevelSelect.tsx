@@ -14,6 +14,29 @@ export function LevelSelect({ completedLevels, onSelect }: LevelSelectProps) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Calculate stars based on par time
+  // 3 stars: under par, 2 stars: under 1.5x par, 1 star: completed
+  const getStars = (bestTime: number, par: number): number => {
+    if (bestTime <= par) return 3;
+    if (bestTime <= par * 1.5) return 2;
+    return 1;
+  };
+
+  const renderStars = (count: number) => {
+    return (
+      <div className="flex justify-center gap-0.5 mt-1">
+        {[1, 2, 3].map(i => (
+          <span 
+            key={i} 
+            className={i <= count ? 'text-yellow-400' : 'text-gray-600'}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="p-8">
       <h1 className="text-4xl font-bold text-white text-center mb-2">DIGGER</h1>
@@ -23,6 +46,7 @@ export function LevelSelect({ completedLevels, onSelect }: LevelSelectProps) {
         {LEVELS.map((level, index) => {
           const isUnlocked = index === 0 || completedLevels.has(index);
           const bestTime = completedLevels.get(level.id);
+          const stars = bestTime !== undefined ? getStars(bestTime, level.par) : 0;
           
           return (
             <button
@@ -43,9 +67,12 @@ export function LevelSelect({ completedLevels, onSelect }: LevelSelectProps) {
                 {level.name}
               </div>
               {bestTime !== undefined && (
-                <div className="text-xs text-green-400 mt-1">
-                  {formatTime(bestTime)}
-                </div>
+                <>
+                  {renderStars(stars)}
+                  <div className="text-xs text-green-400 mt-1">
+                    {formatTime(bestTime)}
+                  </div>
+                </>
               )}
               {!isUnlocked && (
                 <div className="text-xs text-gray-500 mt-1">
