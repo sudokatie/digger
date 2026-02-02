@@ -16,12 +16,13 @@ export default function Home() {
     setScreen('playing');
   }, []);
 
-  const handleWin = useCallback(() => {
+  const handleWin = useCallback((time: number) => {
     setCompletedLevels(prev => {
       const next = new Map(prev);
-      // Store best time (we'd need to track this properly)
-      if (!next.has(currentLevel)) {
-        next.set(currentLevel, 0);
+      const existingTime = prev.get(currentLevel);
+      // Store best time (lower is better)
+      if (existingTime === undefined || time < existingTime) {
+        next.set(currentLevel, time);
       }
       return next;
     });
@@ -60,6 +61,7 @@ export default function Home() {
           onWin={handleWin}
           onLose={handleLose}
           onQuit={handleQuit}
+          onNext={handleNextLevel}
         />
       )}
     </main>

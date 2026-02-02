@@ -2,6 +2,12 @@
 
 All notable changes to Digger will be documented in this file.
 
+## [0.1.1] - 2026-02-01
+
+### Fixed
+- Next Level button now works after completing a level
+- Best completion times now tracked correctly (lower is better)
+
 ## [0.1.0] - 2026-02-01
 
 ### Added

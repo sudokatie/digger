@@ -11,12 +11,13 @@ import { GameOver } from './GameOver';
 
 interface GameCanvasProps {
   levelId: number;
-  onWin: () => void;
+  onWin: (time: number) => void;
   onLose: () => void;
   onQuit: () => void;
+  onNext: () => void;
 }
 
-export function GameCanvas({ levelId, onWin, onLose, onQuit }: GameCanvasProps) {
+export function GameCanvas({ levelId, onWin, onLose, onQuit, onNext }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
   const rendererRef = useRef<Renderer | null>(null);
@@ -69,7 +70,7 @@ export function GameCanvas({ levelId, onWin, onLose, onQuit }: GameCanvasProps) 
     // Check for win/lose
     if (gameRef.current.state === GameState.Win) {
       updateUI();
-      onWin();
+      onWin(gameRef.current.timer);
       return;
     }
     if (gameRef.current.state === GameState.Lose) {
@@ -169,7 +170,7 @@ export function GameCanvas({ levelId, onWin, onLose, onQuit }: GameCanvasProps) 
           won={gameState === GameState.Win}
           time={timer}
           levelId={levelId}
-          onNext={() => {}}
+          onNext={onNext}
           onRetry={handleRestart}
           onQuit={onQuit}
         />
