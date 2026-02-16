@@ -5,6 +5,7 @@ import { Guard } from './Guard';
 import { HoleManager } from './Hole';
 import { LEVELS, getLevel } from './levels';
 import { DEFAULT_CONFIG } from './constants';
+import { Sound } from './Sound';
 
 export class Game {
   private _state: GameState;
@@ -113,6 +114,7 @@ export class Game {
             this._level.addGold(guardGrid.x, guardGrid.y);
           }
           guard.die();
+          Sound.play('guardDeath');
         }
       }
     }
@@ -122,6 +124,7 @@ export class Game {
     if (holePos) {
       this._level.digHole(holePos.x, holePos.y);
       this._holeManager.createHole(holePos);
+      Sound.play('dig');
     }
 
     // Check gold collection
@@ -129,6 +132,7 @@ export class Game {
     if (this._level.hasGold(playerGrid.x, playerGrid.y)) {
       if (this._level.collectGold(playerGrid.x, playerGrid.y)) {
         this._goldCollected++;
+        Sound.play('collect');
       }
     }
 
@@ -137,6 +141,7 @@ export class Game {
       const exit = this._level.getExitPosition();
       if (playerGrid.x === exit.x && playerGrid.y === exit.y) {
         this._state = GameState.Win;
+        Sound.play('levelComplete');
         return;
       }
     }
@@ -151,6 +156,7 @@ export class Game {
 
       // Check if guard just escaped hole and dropped gold
       if (wasTrapped && !guard.isTrapped()) {
+        Sound.play('guardEscape');
         // Guard escaped - check if gold was dropped
         if (!guard.carryingGold) {
           // Gold was dropped at the hole position
@@ -191,6 +197,7 @@ export class Game {
           }
           guard1.die();
           guard2.die();
+          Sound.play('guardDeath');
         }
       }
     }
@@ -242,6 +249,7 @@ export class Game {
 
   private onPlayerDied(): void {
     this._lives--;
+    Sound.play('death');
     
     if (this._lives <= 0) {
       this._state = GameState.Lose;
@@ -289,5 +297,15 @@ export class Game {
 
   getLevelCount(): number {
     return LEVELS.length;
+  }
+
+  toggleSound(): boolean {
+    const newState = !Sound.isEnabled();
+    Sound.setEnabled(newState);
+    return newState;
+  }
+
+  isSoundEnabled(): boolean {
+    return Sound.isEnabled();
   }
 }
