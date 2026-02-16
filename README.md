@@ -17,6 +17,7 @@ Most remakes miss the point. They add power-ups, fancy graphics, complicated mec
 - **Lives system** - Three strikes and you're out
 - **8-bit aesthetic** - Because nostalgia is a valid design choice
 - **Retro sound effects** - Synthesized via Web Audio API
+- **High score leaderboard** - Track your best runs locally
 
 ## Quick Start
 
