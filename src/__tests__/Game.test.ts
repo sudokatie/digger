@@ -246,7 +246,7 @@ describe('Game', () => {
 
   describe('getLevelCount', () => {
     it('should return total level count', () => {
-      expect(game.getLevelCount()).toBe(10);
+      expect(game.getLevelCount()).toBe(13);
     });
   });
 

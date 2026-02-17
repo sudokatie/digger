@@ -13,7 +13,7 @@ Most remakes miss the point. They add power-ups, fancy graphics, complicated mec
 - **No jumping** - Use the level geometry or make your own path
 - **Dig holes** - Trap guards, create shortcuts, solve puzzles
 - **Smart guards** - They'll find you, but they're not invincible
-- **10 handcrafted levels** - From tutorial to "why did I do this to myself"
+- **13 handcrafted levels** - From tutorial to "why did I do this to myself"
 - **Lives system** - Three strikes and you're out
 - **8-bit aesthetic** - Because nostalgia is a valid design choice
 - **Retro sound effects** - Synthesized via Web Audio API
