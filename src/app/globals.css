@@ -18,3 +18,20 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* Responsive game layout */
+@media (max-width: 768px) {
+  canvas {
+    max-width: 100%;
+    height: auto !important;
+  }
+  
+  main {
+    padding: 0.5rem !important;
+  }
+  
+  button {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem;
+  }
+}
