@@ -31,12 +31,19 @@ Open http://localhost:3000. Pick a level. Try not to die.
 
 ## Controls
 
+### Keyboard
 | Action | Keys |
 |--------|------|
 | Move | Arrow Keys / WASD |
 | Dig Left | Q / Z |
 | Dig Right | E / X |
 | Pause | ESC / P |
+
+### Mobile / Touch
+| Gesture | Action |
+|---------|--------|
+| Swipe | Move |
+| Tap | Restart |
 | Restart | R |
 
 ## How to Play
