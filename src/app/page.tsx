@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { LevelSelect } from '@/components/LevelSelect';
 import { GameCanvas } from '@/components/GameCanvas';
+import { Music } from '@/game/Music';
 
 type Screen = 'title' | 'playing' | 'win' | 'lose';
 
@@ -45,6 +46,24 @@ export default function Home() {
       setScreen('title');
     }
   }, [currentLevel]);
+
+  // Switch music tracks based on screen
+  useEffect(() => {
+    switch (screen) {
+      case 'title':
+        Music.play('menu');
+        break;
+      case 'playing':
+        Music.play('gameplay');
+        break;
+      case 'win':
+        Music.play('victory');
+        break;
+      case 'lose':
+        Music.play('gameover');
+        break;
+    }
+  }, [screen]);
 
   return (
     <main className="min-h-screen bg-[#1a1a2e] flex flex-col items-center justify-center p-4">
