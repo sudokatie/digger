@@ -28,7 +28,7 @@ export class Leaderboard {
     } catch {
       this.entries = [];
     }
-    return this.entries;
+    return this.entries ?? [];
   }
 
   private static save(): void {
