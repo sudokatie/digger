@@ -7,9 +7,10 @@ interface LevelSelectProps {
   completedLevels: Map<number, number>;
   onSelect: (levelId: number) => void;
   onDaily?: () => void;
+  onImportReplay?: () => void;
 }
 
-export function LevelSelect({ completedLevels, onSelect, onDaily }: LevelSelectProps) {
+export function LevelSelect({ completedLevels, onSelect, onDaily, onImportReplay }: LevelSelectProps) {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -111,6 +112,18 @@ export function LevelSelect({ completedLevels, onSelect, onDaily }: LevelSelectP
             className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded transition"
           >
             PLAY DAILY
+          </button>
+        </div>
+      )}
+
+      {/* Watch Replay Section */}
+      {onImportReplay && (
+        <div className="mt-4 max-w-md mx-auto">
+          <button
+            onClick={onImportReplay}
+            className="w-full py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition text-sm"
+          >
+            Watch Replay Code
           </button>
         </div>
       )}

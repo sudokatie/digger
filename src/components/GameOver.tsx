@@ -7,9 +7,11 @@ interface GameOverProps {
   onNext: () => void;
   onRetry: () => void;
   onQuit: () => void;
+  onViewReplay?: () => void;
+  hasReplay?: boolean;
 }
 
-export function GameOver({ won, time, levelId, onNext, onRetry, onQuit }: GameOverProps) {
+export function GameOver({ won, time, levelId, onNext, onRetry, onQuit, onViewReplay, hasReplay }: GameOverProps) {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -43,6 +45,15 @@ export function GameOver({ won, time, levelId, onNext, onRetry, onQuit }: GameOv
               className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded transition"
             >
               Next Level
+            </button>
+          )}
+
+          {hasReplay && onViewReplay && (
+            <button
+              onClick={onViewReplay}
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition"
+            >
+              Share Replay
             </button>
           )}
           
