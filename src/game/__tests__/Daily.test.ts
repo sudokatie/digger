@@ -160,3 +160,48 @@ describe('DailyLeaderboard', () => {
     expect(DailyLeaderboard.getBest()).toBeNull();
   });
 });
+
+// Game daily integration tests
+import { Game } from '../Game';
+
+describe('Game daily mode', () => {
+  it('starts in non-daily mode', () => {
+    const game = new Game();
+    expect(game.isDaily).toBe(false);
+    expect(game.score).toBe(0);
+  });
+
+  it('startDaily sets daily mode', () => {
+    const game = new Game();
+    game.startDaily();
+    expect(game.isDaily).toBe(true);
+    expect(game.dailyLevelCount).toBe(3);
+    expect(game.dailyLevelIndex).toBe(0);
+  });
+
+  it('startDaily resets score', () => {
+    const game = new Game();
+    game.startDaily();
+    expect(game.score).toBe(0);
+    expect(game.totalGoldCollected).toBe(0);
+  });
+
+  it('resetDaily clears daily state', () => {
+    const game = new Game();
+    game.startDaily();
+    game.resetDaily();
+    expect(game.isDaily).toBe(false);
+    expect(game.score).toBe(0);
+    expect(game.dailyLevelCount).toBe(0);
+  });
+
+  it('getScoreBreakdown returns breakdown', () => {
+    const game = new Game();
+    game.startDaily();
+    const breakdown = game.getScoreBreakdown();
+    expect(breakdown).toHaveProperty('gold');
+    expect(breakdown).toHaveProperty('time');
+    expect(breakdown).toHaveProperty('lives');
+    expect(breakdown).toHaveProperty('total');
+  });
+});

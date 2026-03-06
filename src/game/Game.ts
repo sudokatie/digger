@@ -6,6 +6,7 @@ import { HoleManager } from './Hole';
 import { LEVELS, getLevel } from './levels';
 import { DEFAULT_CONFIG } from './constants';
 import { Sound } from './Sound';
+import { getDailyLevelIds } from './Daily';
 
 export class Game {
   private _state: GameState;
@@ -17,6 +18,13 @@ export class Game {
   private _timer: number;
   private _currentLevelId: number;
   private _goldCollected: number;
+  
+  // Daily challenge state
+  private _isDaily: boolean;
+  private _score: number;
+  private _dailyLevelIds: number[];
+  private _dailyLevelIndex: number;
+  private _totalGoldCollected: number;
 
   constructor() {
     this._state = GameState.Title;
@@ -28,6 +36,11 @@ export class Game {
     this._timer = 0;
     this._currentLevelId = 0;
     this._goldCollected = 0;
+    this._isDaily = false;
+    this._score = 0;
+    this._dailyLevelIds = [];
+    this._dailyLevelIndex = 0;
+    this._totalGoldCollected = 0;
   }
 
   get state(): GameState {
@@ -307,5 +320,106 @@ export class Game {
 
   isSoundEnabled(): boolean {
     return Sound.isEnabled();
+  }
+
+  // === Daily Challenge Methods ===
+
+  /** Start a daily challenge run */
+  startDaily(): void {
+    this._isDaily = true;
+    this._score = 0;
+    this._totalGoldCollected = 0;
+    this._dailyLevelIds = getDailyLevelIds(LEVELS.length);
+    this._dailyLevelIndex = 0;
+    this._lives = DEFAULT_CONFIG.lives;
+    
+    if (this._dailyLevelIds.length > 0) {
+      this.loadLevel(this._dailyLevelIds[0]);
+    }
+  }
+
+  /** Check if currently in daily mode */
+  get isDaily(): boolean {
+    return this._isDaily;
+  }
+
+  /** Get current score */
+  get score(): number {
+    return this._score;
+  }
+
+  /** Get total gold collected across all daily levels */
+  get totalGoldCollected(): number {
+    return this._totalGoldCollected;
+  }
+
+  /** Get current daily level index (0-based) */
+  get dailyLevelIndex(): number {
+    return this._dailyLevelIndex;
+  }
+
+  /** Get total number of daily levels */
+  get dailyLevelCount(): number {
+    return this._dailyLevelIds.length;
+  }
+
+  /** Called when a daily level is completed - advances or ends challenge */
+  completeDailyLevel(): boolean {
+    // Add score for this level
+    const levelScore = this.calculateLevelScore();
+    this._score += levelScore;
+    this._totalGoldCollected += this._goldCollected;
+
+    this._dailyLevelIndex++;
+
+    // Check if more levels remain
+    if (this._dailyLevelIndex < this._dailyLevelIds.length) {
+      // Load next daily level
+      const nextLevelId = this._dailyLevelIds[this._dailyLevelIndex];
+      this.loadLevel(nextLevelId);
+      return false; // Not finished yet
+    } else {
+      // Daily challenge complete
+      return true;
+    }
+  }
+
+  /** Calculate score for the current level */
+  private calculateLevelScore(): number {
+    // Score formula: gold * 100 + time bonus + lives bonus
+    const goldPoints = this._goldCollected * 100;
+    
+    // Time bonus: faster completion = more points (max 500)
+    const parTime = 60; // Base par time in seconds
+    const timeBonus = Math.max(0, Math.floor((parTime - this._timer) * 10));
+    const cappedTimeBonus = Math.min(500, timeBonus);
+    
+    // Lives bonus: 200 per remaining life
+    const livesBonus = this._lives * 200;
+
+    return goldPoints + cappedTimeBonus + livesBonus;
+  }
+
+  /** Get detailed score breakdown for display */
+  getScoreBreakdown(): { gold: number; time: number; lives: number; total: number } {
+    const gold = this._goldCollected * 100;
+    const parTime = 60;
+    const timeBonus = Math.min(500, Math.max(0, Math.floor((parTime - this._timer) * 10)));
+    const lives = this._lives * 200;
+    return {
+      gold,
+      time: timeBonus,
+      lives,
+      total: gold + timeBonus + lives,
+    };
+  }
+
+  /** Reset daily state (call when returning to title) */
+  resetDaily(): void {
+    this._isDaily = false;
+    this._score = 0;
+    this._dailyLevelIds = [];
+    this._dailyLevelIndex = 0;
+    this._totalGoldCollected = 0;
   }
 }
