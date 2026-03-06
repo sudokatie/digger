@@ -7,6 +7,7 @@ import { LEVELS, getLevel } from './levels';
 import { DEFAULT_CONFIG } from './constants';
 import { Sound } from './Sound';
 import { getDailyLevelIds } from './Daily';
+import { Replay, ReplayData } from './Replay';
 
 export class Game {
   private _state: GameState;
@@ -26,6 +27,12 @@ export class Game {
   private _dailyLevelIndex: number;
   private _totalGoldCollected: number;
 
+  // Replay state
+  private _replay: Replay;
+  private _isPlayback: boolean;
+  private _lastReplayData: ReplayData | null;
+  private _recordingEnabled: boolean;
+
   constructor() {
     this._state = GameState.Title;
     this._level = null;
@@ -41,6 +48,10 @@ export class Game {
     this._dailyLevelIds = [];
     this._dailyLevelIndex = 0;
     this._totalGoldCollected = 0;
+    this._replay = new Replay();
+    this._isPlayback = false;
+    this._lastReplayData = null;
+    this._recordingEnabled = true;
   }
 
   get state(): GameState {
@@ -90,6 +101,11 @@ export class Game {
     this._currentLevelId = levelId;
     this._goldCollected = 0;
     this._state = GameState.Playing;
+
+    // Start replay recording if enabled and not in playback mode
+    if (this._recordingEnabled && !this._isPlayback) {
+      this._replay.startRecording(levelId);
+    }
 
     return true;
   }
@@ -154,6 +170,10 @@ export class Game {
       const exit = this._level.getExitPosition();
       if (playerGrid.x === exit.x && playerGrid.y === exit.y) {
         this._state = GameState.Win;
+        // Stop replay recording on win
+        if (this._replay.isRecording) {
+          this._lastReplayData = this._replay.stopRecording(true, this._isDaily ? this._score : undefined);
+        }
         Sound.play('levelComplete');
         return;
       }
@@ -239,6 +259,11 @@ export class Game {
       return;
     }
 
+    // Record input for replay (only move/dig actions)
+    if (this._replay.isRecording) {
+      this._replay.recordInput(action);
+    }
+
     if (action.type === 'move') {
       this._player.move(action.direction, this._level, 1/60);
     } else if (action.type === 'dig') {
@@ -266,6 +291,10 @@ export class Game {
     
     if (this._lives <= 0) {
       this._state = GameState.Lose;
+      // Stop replay recording on lose
+      if (this._replay.isRecording) {
+        this._lastReplayData = this._replay.stopRecording(false);
+      }
     } else if (this._player && this._level) {
       // Respawn
       this._player.respawn(this._level.playerSpawn);
@@ -421,5 +450,69 @@ export class Game {
     this._dailyLevelIds = [];
     this._dailyLevelIndex = 0;
     this._totalGoldCollected = 0;
+  }
+
+  // === Replay Methods ===
+
+  /** Get the last recorded replay data */
+  get lastReplayData(): ReplayData | null {
+    return this._lastReplayData;
+  }
+
+  /** Check if currently in playback mode */
+  get isPlayback(): boolean {
+    return this._isPlayback;
+  }
+
+  /** Check if currently recording */
+  get isRecording(): boolean {
+    return this._replay.isRecording;
+  }
+
+  /** Enable/disable recording */
+  setRecordingEnabled(enabled: boolean): void {
+    this._recordingEnabled = enabled;
+  }
+
+  /** Start playback of a replay */
+  startPlayback(data: ReplayData): void {
+    this._isPlayback = true;
+    this._recordingEnabled = false;
+    this.loadLevel(data.levelId);
+    this._replay.startPlayback(data);
+  }
+
+  /** Stop playback mode */
+  stopPlayback(): void {
+    this._isPlayback = false;
+    this._recordingEnabled = true;
+    this._replay.stopPlayback();
+    this._state = GameState.Title;
+  }
+
+  /** Update playback - call in game loop when in playback mode */
+  updatePlayback(): void {
+    if (!this._isPlayback) return;
+
+    // Get next action from replay
+    const action = this._replay.getNextAction();
+    if (action) {
+      this.handleInput(action);
+    }
+
+    // Check if playback complete
+    if (this._replay.isPlaybackComplete) {
+      // Let the game finish naturally (win/lose)
+    }
+  }
+
+  /** Get playback progress (0-1) */
+  get playbackProgress(): number {
+    return this._replay.playbackProgress;
+  }
+
+  /** Clear last replay data */
+  clearReplayData(): void {
+    this._lastReplayData = null;
   }
 }
