@@ -8,6 +8,7 @@ import { GameState, Direction } from '@/game/types';
 import { HUD } from './HUD';
 import { PauseMenu } from './PauseMenu';
 import { GameOver } from './GameOver';
+import { DailyComplete } from './DailyComplete';
 
 interface GameCanvasProps {
   levelId: number;
@@ -35,6 +36,8 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
   const [dailyScore, setDailyScore] = useState(0);
   const [dailyLevelIndex, setDailyLevelIndex] = useState(0);
   const [dailyLevelCount, setDailyLevelCount] = useState(0);
+  const [dailyGoldTotal, setDailyGoldTotal] = useState(0);
+  const [showDailyComplete, setShowDailyComplete] = useState(false);
 
   const updateUI = useCallback(() => {
     if (!gameRef.current) return;
@@ -50,6 +53,7 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
       setDailyScore(gameRef.current.score);
       setDailyLevelIndex(gameRef.current.dailyLevelIndex);
       setDailyLevelCount(gameRef.current.dailyLevelCount);
+      setDailyGoldTotal(gameRef.current.totalGoldCollected);
     }
   }, []);
 
@@ -86,6 +90,10 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
         // Daily mode - check if we should advance or complete
         const isComplete = gameRef.current.completeDailyLevel();
         if (isComplete) {
+          // Add final level score and show complete screen
+          setDailyScore(gameRef.current.score);
+          setDailyGoldTotal(gameRef.current.totalGoldCollected);
+          setShowDailyComplete(true);
           onDailyComplete?.();
         } else {
           // Continue to next daily level
@@ -193,13 +201,41 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
         />
       )}
 
-      {(gameState === GameState.Win || gameState === GameState.Lose) && (
+      {(gameState === GameState.Win || gameState === GameState.Lose) && !isDaily && (
         <GameOver
           won={gameState === GameState.Win}
           time={timer}
           levelId={levelId}
           onNext={onNext}
           onRetry={handleRestart}
+          onQuit={onQuit}
+        />
+      )}
+
+      {gameState === GameState.Lose && isDaily && (
+        <GameOver
+          won={false}
+          time={timer}
+          levelId={dailyLevelIndex + 1}
+          onRetry={() => {
+            gameRef.current?.startDaily();
+            setShowDailyComplete(false);
+            updateUI();
+          }}
+          onQuit={onQuit}
+        />
+      )}
+
+      {showDailyComplete && (
+        <DailyComplete
+          score={dailyScore}
+          goldCollected={dailyGoldTotal}
+          levelsCompleted={dailyLevelCount}
+          onPlayAgain={() => {
+            gameRef.current?.startDaily();
+            setShowDailyComplete(false);
+            updateUI();
+          }}
           onQuit={onQuit}
         />
       )}
