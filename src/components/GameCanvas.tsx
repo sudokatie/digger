@@ -5,10 +5,12 @@ import { Game } from '@/game/Game';
 import { Renderer } from '@/game/Renderer';
 import { Input } from '@/game/Input';
 import { GameState, Direction } from '@/game/types';
+import { ReplayData } from '@/game/Replay';
 import { HUD } from './HUD';
 import { PauseMenu } from './PauseMenu';
 import { GameOver } from './GameOver';
 import { DailyComplete } from './DailyComplete';
+import { ReplayView, ReplayImport } from './ReplayView';
 
 interface GameCanvasProps {
   levelId: number;
@@ -38,6 +40,8 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
   const [dailyLevelCount, setDailyLevelCount] = useState(0);
   const [dailyGoldTotal, setDailyGoldTotal] = useState(0);
   const [showDailyComplete, setShowDailyComplete] = useState(false);
+  const [showReplayView, setShowReplayView] = useState(false);
+  const [isPlayback, setIsPlayback] = useState(false);
 
   const updateUI = useCallback(() => {
     if (!gameRef.current) return;
@@ -69,8 +73,8 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
     // Cap dt to prevent huge jumps
     const cappedDt = Math.min(dt, 0.1);
 
-    // Handle input
-    if (gameRef.current.state === GameState.Playing) {
+    // Handle input (skip if in playback mode)
+    if (gameRef.current.state === GameState.Playing && !gameRef.current.isPlayback) {
       const direction = inputRef.current.getDirection();
       gameRef.current.movePlayer(direction, cappedDt);
 
@@ -78,6 +82,11 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
       if (digDir) {
         gameRef.current.digPlayer(digDir);
       }
+    }
+
+    // Handle playback mode
+    if (gameRef.current.isPlayback) {
+      gameRef.current.updatePlayback();
     }
 
     // Update game
@@ -174,6 +183,32 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
     updateUI();
   };
 
+  const handleViewReplay = () => {
+    setShowReplayView(true);
+  };
+
+  const handleWatchReplay = () => {
+    const replayData = gameRef.current?.lastReplayData;
+    if (replayData && gameRef.current) {
+      setShowReplayView(false);
+      gameRef.current.startPlayback(replayData);
+      setIsPlayback(true);
+      updateUI();
+      frameRef.current = requestAnimationFrame(gameLoop);
+    }
+  };
+
+  const handleCloseReplay = () => {
+    setShowReplayView(false);
+  };
+
+  const handleStopPlayback = () => {
+    gameRef.current?.stopPlayback();
+    setIsPlayback(false);
+    updateUI();
+    onQuit();
+  };
+
   return (
     <div className="relative">
       <HUD
@@ -201,14 +236,16 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
         />
       )}
 
-      {(gameState === GameState.Win || gameState === GameState.Lose) && !isDaily && (
+      {(gameState === GameState.Win || gameState === GameState.Lose) && !isDaily && !isPlayback && (
         <GameOver
           won={gameState === GameState.Win}
           time={timer}
           levelId={levelId}
-          onNext={onNext}
+          onNext={onNext ?? (() => {})}
           onRetry={handleRestart}
           onQuit={onQuit}
+          onViewReplay={handleViewReplay}
+          hasReplay={gameRef.current?.lastReplayData !== null}
         />
       )}
 
@@ -217,6 +254,7 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
           won={false}
           time={timer}
           levelId={dailyLevelIndex + 1}
+          onNext={() => {}}
           onRetry={() => {
             gameRef.current?.startDaily();
             setShowDailyComplete(false);
@@ -238,6 +276,32 @@ export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, on
           }}
           onQuit={onQuit}
         />
+      )}
+
+      {showReplayView && gameRef.current?.lastReplayData && (
+        <ReplayView
+          replayData={gameRef.current.lastReplayData}
+          onWatch={handleWatchReplay}
+          onClose={handleCloseReplay}
+        />
+      )}
+
+      {isPlayback && (
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-blue-600 px-4 py-2 rounded-lg flex items-center gap-4">
+          <span className="text-white font-bold">REPLAY</span>
+          <div className="w-32 h-2 bg-blue-800 rounded">
+            <div 
+              className="h-full bg-white rounded transition-all"
+              style={{ width: `${(gameRef.current?.playbackProgress ?? 0) * 100}%` }}
+            />
+          </div>
+          <button
+            onClick={handleStopPlayback}
+            className="text-white hover:text-red-300 text-sm"
+          >
+            Stop
+          </button>
+        </div>
       )}
     </div>
   );
