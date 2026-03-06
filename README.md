@@ -19,6 +19,8 @@ Most remakes miss the point. They add power-ups, fancy graphics, complicated mec
 - **Retro sound effects** - Synthesized via Web Audio API
 - **Background music** - Chase-themed chiptune loop
 - **High score leaderboard** - Track your best runs locally
+- **Daily challenges** - Three seeded levels, compete for best score
+- **Replay sharing** - Record your runs, share codes with friends
 
 ## Quick Start
 
