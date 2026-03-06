@@ -5,36 +5,50 @@ import { LevelSelect } from '@/components/LevelSelect';
 import { GameCanvas } from '@/components/GameCanvas';
 import { Music } from '@/game/Music';
 
-type Screen = 'title' | 'playing' | 'win' | 'lose';
+type Screen = 'title' | 'playing' | 'daily' | 'win' | 'lose' | 'daily-complete';
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('title');
   const [currentLevel, setCurrentLevel] = useState(1);
   const [completedLevels, setCompletedLevels] = useState<Map<number, number>>(new Map());
+  const [isDaily, setIsDaily] = useState(false);
 
   const handleSelectLevel = useCallback((levelId: number) => {
     setCurrentLevel(levelId);
+    setIsDaily(false);
     setScreen('playing');
   }, []);
 
+  const handleStartDaily = useCallback(() => {
+    setIsDaily(true);
+    setScreen('daily');
+  }, []);
+
   const handleWin = useCallback((time: number) => {
-    setCompletedLevels(prev => {
-      const next = new Map(prev);
-      const existingTime = prev.get(currentLevel);
-      // Store best time (lower is better)
-      if (existingTime === undefined || time < existingTime) {
-        next.set(currentLevel, time);
-      }
-      return next;
-    });
+    if (!isDaily) {
+      setCompletedLevels(prev => {
+        const next = new Map(prev);
+        const existingTime = prev.get(currentLevel);
+        // Store best time (lower is better)
+        if (existingTime === undefined || time < existingTime) {
+          next.set(currentLevel, time);
+        }
+        return next;
+      });
+    }
     setScreen('win');
-  }, [currentLevel]);
+  }, [currentLevel, isDaily]);
+
+  const handleDailyComplete = useCallback(() => {
+    setScreen('daily-complete');
+  }, []);
 
   const handleLose = useCallback(() => {
     setScreen('lose');
   }, []);
 
   const handleQuit = useCallback(() => {
+    setIsDaily(false);
     setScreen('title');
   }, []);
 
@@ -54,9 +68,11 @@ export default function Home() {
         Music.play('menu');
         break;
       case 'playing':
+      case 'daily':
         Music.play('gameplay');
         break;
       case 'win':
+      case 'daily-complete':
         Music.play('victory');
         break;
       case 'lose':
@@ -71,16 +87,28 @@ export default function Home() {
         <LevelSelect
           completedLevels={completedLevels}
           onSelect={handleSelectLevel}
+          onDaily={handleStartDaily}
         />
       )}
 
-      {(screen === 'playing' || screen === 'win' || screen === 'lose') && (
+      {(screen === 'playing' || screen === 'win' || screen === 'lose') && !isDaily && (
         <GameCanvas
           levelId={currentLevel}
           onWin={handleWin}
           onLose={handleLose}
           onQuit={handleQuit}
           onNext={handleNextLevel}
+        />
+      )}
+
+      {(screen === 'daily' || screen === 'win' || screen === 'lose' || screen === 'daily-complete') && isDaily && (
+        <GameCanvas
+          levelId={0}
+          isDaily={true}
+          onWin={handleWin}
+          onLose={handleLose}
+          onQuit={handleQuit}
+          onDailyComplete={handleDailyComplete}
         />
       )}
     </main>

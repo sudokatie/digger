@@ -1,13 +1,15 @@
 'use client';
 
 import { LEVELS } from '@/game/levels';
+import { DailyLeaderboard, todayString } from '@/game/Daily';
 
 interface LevelSelectProps {
   completedLevels: Map<number, number>;
   onSelect: (levelId: number) => void;
+  onDaily?: () => void;
 }
 
-export function LevelSelect({ completedLevels, onSelect }: LevelSelectProps) {
+export function LevelSelect({ completedLevels, onSelect, onDaily }: LevelSelectProps) {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -83,6 +85,35 @@ export function LevelSelect({ completedLevels, onSelect }: LevelSelectProps) {
           );
         })}
       </div>
+
+      {/* Daily Challenge Section */}
+      {onDaily && (
+        <div className="mt-8 p-4 bg-gradient-to-r from-purple-900 to-indigo-900 rounded-lg max-w-md mx-auto">
+          <h2 className="text-xl font-bold text-white text-center mb-2">
+            Daily Challenge
+          </h2>
+          <p className="text-gray-300 text-center text-sm mb-3">
+            {todayString()} • 3 seeded levels
+          </p>
+          
+          {(() => {
+            const best = DailyLeaderboard.getBest();
+            return best ? (
+              <div className="text-center mb-3">
+                <p className="text-yellow-400 text-sm">Today&apos;s Best</p>
+                <p className="text-white font-mono text-lg">{best.score.toLocaleString()}</p>
+              </div>
+            ) : null;
+          })()}
+
+          <button
+            onClick={onDaily}
+            className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded transition"
+          >
+            PLAY DAILY
+          </button>
+        </div>
+      )}
 
       <div className="mt-8 text-center text-gray-500 text-sm">
         <p>Collect all gold to reveal the exit</p>

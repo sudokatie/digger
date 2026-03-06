@@ -5,9 +5,10 @@ interface HUDProps {
   gold: { collected: number; total: number };
   lives: number;
   timer: number;
+  score?: number;
 }
 
-export function HUD({ levelName, gold, lives, timer }: HUDProps) {
+export function HUD({ levelName, gold, lives, timer, score }: HUDProps) {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -27,6 +28,13 @@ export function HUD({ levelName, gold, lives, timer }: HUDProps) {
       </div>
       
       <div className="flex items-center gap-6">
+        {score !== undefined && (
+          <div className="flex items-center gap-1">
+            <span className="text-purple-400 font-bold">SCORE:</span>
+            <span className="font-mono">{score.toLocaleString()}</span>
+          </div>
+        )}
+        
         <div className="flex items-center gap-1">
           <span className="text-yellow-400">$</span>
           <span>{gold.collected}/{gold.total}</span>

@@ -11,13 +11,15 @@ import { GameOver } from './GameOver';
 
 interface GameCanvasProps {
   levelId: number;
+  isDaily?: boolean;
   onWin: (time: number) => void;
   onLose: () => void;
   onQuit: () => void;
-  onNext: () => void;
+  onNext?: () => void;
+  onDailyComplete?: () => void;
 }
 
-export function GameCanvas({ levelId, onWin, onLose, onQuit, onNext }: GameCanvasProps) {
+export function GameCanvas({ levelId, isDaily, onWin, onLose, onQuit, onNext, onDailyComplete }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
   const rendererRef = useRef<Renderer | null>(null);
@@ -30,6 +32,9 @@ export function GameCanvas({ levelId, onWin, onLose, onQuit, onNext }: GameCanva
   const [lives, setLives] = useState(3);
   const [timer, setTimer] = useState(0);
   const [levelName, setLevelName] = useState('');
+  const [dailyScore, setDailyScore] = useState(0);
+  const [dailyLevelIndex, setDailyLevelIndex] = useState(0);
+  const [dailyLevelCount, setDailyLevelCount] = useState(0);
 
   const updateUI = useCallback(() => {
     if (!gameRef.current) return;
@@ -39,6 +44,13 @@ export function GameCanvas({ levelId, onWin, onLose, onQuit, onNext }: GameCanva
     setLives(gameRef.current.lives);
     setTimer(gameRef.current.timer);
     setLevelName(gameRef.current.getLevelName());
+    
+    // Daily mode state
+    if (gameRef.current.isDaily) {
+      setDailyScore(gameRef.current.score);
+      setDailyLevelIndex(gameRef.current.dailyLevelIndex);
+      setDailyLevelCount(gameRef.current.dailyLevelCount);
+    }
   }, []);
 
   const gameLoop = useCallback((timestamp: number) => {
@@ -70,7 +82,18 @@ export function GameCanvas({ levelId, onWin, onLose, onQuit, onNext }: GameCanva
     // Check for win/lose
     if (gameRef.current.state === GameState.Win) {
       updateUI();
-      onWin(gameRef.current.timer);
+      if (gameRef.current.isDaily) {
+        // Daily mode - check if we should advance or complete
+        const isComplete = gameRef.current.completeDailyLevel();
+        if (isComplete) {
+          onDailyComplete?.();
+        } else {
+          // Continue to next daily level
+          updateUI();
+        }
+      } else {
+        onWin(gameRef.current.timer);
+      }
       return;
     }
     if (gameRef.current.state === GameState.Lose) {
@@ -116,7 +139,11 @@ export function GameCanvas({ levelId, onWin, onLose, onQuit, onNext }: GameCanva
     });
 
     // Load level and attach input
-    game.loadLevel(levelId);
+    if (isDaily) {
+      game.startDaily();
+    } else {
+      game.loadLevel(levelId);
+    }
     input.attach();
     updateUI();
 
@@ -142,10 +169,11 @@ export function GameCanvas({ levelId, onWin, onLose, onQuit, onNext }: GameCanva
   return (
     <div className="relative">
       <HUD
-        levelName={levelName}
+        levelName={isDaily ? `Daily ${dailyLevelIndex + 1}/${dailyLevelCount}` : levelName}
         gold={goldCount}
         lives={lives}
         timer={timer}
+        score={isDaily ? dailyScore : undefined}
       />
       
       <canvas
