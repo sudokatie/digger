@@ -82,7 +82,7 @@ export default function Home() {
   }, [screen]);
 
   return (
-    <main className="min-h-screen bg-[#1a1a2e] flex flex-col items-center justify-center p-4">
+    <main className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
       {screen === 'title' && (
         <LevelSelect
           completedLevels={completedLevels}
