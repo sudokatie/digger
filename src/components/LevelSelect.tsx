@@ -31,9 +31,9 @@ export function LevelSelect({ completedLevels, onSelect, onDaily, onImportReplay
         {[1, 2, 3].map(i => (
           <span 
             key={i} 
-            className={i <= count ? 'text-yellow-400' : 'text-gray-600'}
+            className={`text-xs ${i <= count ? 'text-[#dc2626]' : 'text-[#2a2a2a]'}`}
           >
-            ★
+            *
           </span>
         ))}
       </div>
@@ -41,96 +41,116 @@ export function LevelSelect({ completedLevels, onSelect, onDaily, onImportReplay
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold text-white text-center mb-2">DIGGER</h1>
-      <p className="text-gray-400 text-center mb-8">Select a level</p>
-      
-      <div className="grid grid-cols-5 gap-4 max-w-2xl mx-auto">
-        {LEVELS.map((level, index) => {
-          const isUnlocked = index === 0 || completedLevels.has(index);
-          const bestTime = completedLevels.get(level.id);
-          const stars = bestTime !== undefined ? getStars(bestTime, level.par) : 0;
-          
-          return (
-            <button
-              key={level.id}
-              onClick={() => isUnlocked && onSelect(level.id)}
-              disabled={!isUnlocked}
-              className={`
-                p-4 rounded-lg text-center transition
-                ${isUnlocked 
-                  ? 'bg-gray-700 hover:bg-gray-600 cursor-pointer' 
-                  : 'bg-gray-800 cursor-not-allowed opacity-50'}
-              `}
-            >
-              <div className="text-2xl font-bold text-white mb-1">
-                {level.id}
-              </div>
-              <div className="text-xs text-gray-400 truncate">
-                {level.name}
-              </div>
-              {bestTime !== undefined && (
-                <>
-                  {renderStars(stars)}
-                  <div className="text-xs text-green-400 mt-1">
-                    {formatTime(bestTime)}
-                  </div>
-                </>
-              )}
-              {!isUnlocked && (
-                <div className="text-xs text-gray-500 mt-1">
-                  Locked
-                </div>
-              )}
-            </button>
-          );
-        })}
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
+      {/* Header */}
+      <div className="w-full max-w-2xl mb-4">
+        <div className="flex items-center justify-between">
+          <a href="/games/" className="mc-link">&lt; BACK TO HUB</a>
+          <span className="mc-header">MISSION SELECT</span>
+        </div>
       </div>
 
-      {/* Daily Challenge Section */}
-      {onDaily && (
-        <div className="mt-8 p-4 bg-gradient-to-r from-purple-900 to-indigo-900 rounded-lg max-w-md mx-auto">
-          <h2 className="text-xl font-bold text-white text-center mb-2">
-            Daily Challenge
-          </h2>
-          <p className="text-gray-300 text-center text-sm mb-3">
-            {todayString()} • 3 seeded levels
-          </p>
-          
-          {(() => {
-            const best = DailyLeaderboard.getBest();
-            return best ? (
-              <div className="text-center mb-3">
-                <p className="text-yellow-400 text-sm">Today&apos;s Best</p>
-                <p className="text-white font-mono text-lg">{best.score.toLocaleString()}</p>
-              </div>
-            ) : null;
-          })()}
-
-          <button
-            onClick={onDaily}
-            className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded transition"
-          >
-            PLAY DAILY
-          </button>
+      {/* Main Panel */}
+      <div className="mc-panel p-6 w-full max-w-2xl">
+        {/* Title Bar */}
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#2a2a2a]">
+          <div className="mc-dot" />
+          <h1 className="mc-header-primary text-2xl tracking-wider">DIGGER</h1>
         </div>
-      )}
+        
+        {/* Level Grid */}
+        <div className="grid grid-cols-5 gap-3 mb-6">
+          {LEVELS.map((level, index) => {
+            const isUnlocked = index === 0 || completedLevels.has(index);
+            const bestTime = completedLevels.get(level.id);
+            const stars = bestTime !== undefined ? getStars(bestTime, level.par) : 0;
+            
+            return (
+              <button
+                key={level.id}
+                onClick={() => isUnlocked && onSelect(level.id)}
+                disabled={!isUnlocked}
+                className={`
+                  p-3 text-center transition border
+                  ${isUnlocked 
+                    ? 'bg-[#0d0d0d] border-[#2a2a2a] hover:border-[#dc2626] cursor-pointer' 
+                    : 'bg-[#0d0d0d] border-[#1a1a1a] cursor-not-allowed opacity-40'}
+                `}
+              >
+                <div className="text-xl font-mono text-white mb-1">
+                  {level.id}
+                </div>
+                <div className="text-[10px] text-[#555555] truncate tracking-wider uppercase">
+                  {level.name}
+                </div>
+                {bestTime !== undefined && (
+                  <>
+                    {renderStars(stars)}
+                    <div className="text-[10px] text-[#dc2626] mt-1 font-mono">
+                      {formatTime(bestTime)}
+                    </div>
+                  </>
+                )}
+                {!isUnlocked && (
+                  <div className="text-[10px] text-[#333333] mt-1 tracking-wider">
+                    LOCKED
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-      {/* Watch Replay Section */}
-      {onImportReplay && (
-        <div className="mt-4 max-w-md mx-auto">
+        {/* Daily Challenge */}
+        {onDaily && (
+          <div className="border-t border-[#2a2a2a] pt-6 mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-2 bg-[#dc2626]" />
+              <span className="mc-header">DAILY CHALLENGE</span>
+            </div>
+            <div className="bg-[#0d0d0d] border border-[#2a2a2a] p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[#555555] text-xs font-mono">{todayString()}</span>
+                <span className="text-[#555555] text-xs tracking-wider">3 SEEDED LEVELS</span>
+              </div>
+              
+              {(() => {
+                const best = DailyLeaderboard.getBest();
+                return best ? (
+                  <div className="mb-3 text-center">
+                    <span className="mc-header block mb-1">BEST SCORE</span>
+                    <span className="text-[#dc2626] font-mono text-2xl">{best.score.toLocaleString()}</span>
+                  </div>
+                ) : null;
+              })()}
+
+              <button
+                onClick={onDaily}
+                className="w-full py-3 bg-[#dc2626] hover:bg-[#b91c1c] text-white text-sm tracking-widest font-medium transition-colors border border-[#dc2626]"
+              >
+                INITIATE DAILY
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Watch Replay */}
+        {onImportReplay && (
           <button
             onClick={onImportReplay}
-            className="w-full py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition text-sm"
+            className="w-full py-2 bg-transparent border border-[#2a2a2a] text-[#888888] text-xs tracking-widest transition-colors hover:text-white hover:border-[#3a3a3a]"
           >
-            Watch Replay Code
+            IMPORT REPLAY CODE
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
-      <div className="mt-8 text-center text-gray-500 text-sm">
-        <p>Collect all gold to reveal the exit</p>
-        <p>Dig holes to trap guards</p>
+      {/* Footer */}
+      <div className="w-full max-w-2xl mt-4">
+        <div className="flex items-center justify-center gap-2">
+          <span className="mc-header text-[10px]">OBJECTIVE:</span>
+          <span className="text-[#555555] text-xs font-mono">Collect gold to reveal exit | Dig holes to trap guards</span>
+        </div>
       </div>
     </div>
   );
